@@ -18,15 +18,15 @@ where
     where
         P: WriteClient<V> + ReadClient<V> + Quorum,
     {
-        let value = match self.stage1(peers, round, value).await? {
+        let value = match self.read_stage(peers, round, value).await? {
             None => return Ok(None),
             Some(v) => v,
         };
 
-        self.stage2(peers, round, value).await
+        self.write_stage(peers, round, value).await
     }
 
-    async fn stage1<P>(&self, peers: &P, round: Round, value: V) -> Result<Option<V>, Error>
+    async fn read_stage<P>(&self, peers: &P, round: Round, value: V) -> Result<Option<V>, Error>
     where
         P: WriteClient<V> + ReadClient<V> + Quorum,
     {
@@ -53,7 +53,12 @@ where
         Ok(Some(value))
     }
 
-    async fn stage2<P>(&mut self, peers: &P, round: Round, value: V) -> Result<Option<V>, Error>
+    async fn write_stage<P>(
+        &mut self,
+        peers: &P,
+        round: Round,
+        value: V,
+    ) -> Result<Option<V>, Error>
     where
         P: WriteClient<V> + ReadClient<V> + Quorum,
     {
@@ -106,11 +111,6 @@ where
             last_round_entered: self.last_round_entered,
         }
     }
-}
-
-enum Stage1Result<V> {
-    Abort,
-    Continue(Option<V>),
 }
 
 #[derive(Clone, Debug)]
