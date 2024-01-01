@@ -1,5 +1,5 @@
+use futures::Stream;
 use futures::StreamExt;
-use futures::{Stream, TryStream};
 use std::cmp::max;
 use std::future::ready;
 use thiserror::Error;
