@@ -1,6 +1,7 @@
 use futures::Stream;
 use futures::StreamExt;
 use std::cmp::max;
+use std::fmt::{Debug, Display};
 use std::future::ready;
 use thiserror::Error;
 
@@ -170,13 +171,13 @@ struct WriteResponse {
 }
 
 pub trait ReadClient<V> {
-    type Error: Into<Error>;
+    type Error: Into<Error> + Debug;
     type Stream: Stream<Item = Result<ReadResponse<V>, Self::Error>>;
     fn broadcast_read(&self, round: Round) -> Self::Stream;
 }
 
 pub trait WriteClient<V> {
-    type Error: Into<Error>;
+    type Error: Into<Error> + Debug;
     type Stream: Stream<Item = Result<WriteResponse, Self::Error>>;
     fn broadcast_write(&self, value: Value<V>) -> Self::Stream;
 }
