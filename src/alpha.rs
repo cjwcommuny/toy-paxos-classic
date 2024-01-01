@@ -1,7 +1,7 @@
 use futures::Stream;
 use futures::StreamExt;
 use std::cmp::max;
-use std::fmt::{Debug};
+use std::fmt::Debug;
 use std::future::ready;
 use thiserror::Error;
 
