@@ -5,7 +5,7 @@ use std::future::ready;
 use thiserror::Error;
 
 #[derive(Clone)]
-struct Alpha<V> {
+pub struct Alpha<V> {
     last_round_entered: Round,
     value: Option<Value<V>>,
 }
@@ -14,7 +14,7 @@ impl<V> Alpha<V>
 where
     V: Clone,
 {
-    async fn alpha<P>(&mut self, peers: &P, round: Round, value: V) -> Result<Option<V>, Error>
+    pub async fn alpha<P>(&mut self, peers: &P, round: Round, value: V) -> Result<Option<V>, Error>
     where
         P: WriteClient<V> + ReadClient<V> + Quorum,
     {
@@ -120,19 +120,41 @@ struct Value<V> {
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
-struct Round {
+pub struct Round {
     tick: Tick,
     process_id: Id,
 }
 
-#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
-struct Id(u64);
+impl Round {
+    pub fn new(process_id: Id) -> Self {
+        Self {
+            tick: Tick::default(),
+            process_id,
+        }
+    }
+
+    pub fn next(self) -> Self {
+        Self {
+            tick: self.tick.next(),
+            process_id: self.process_id,
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub struct Id(u64);
+
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Default)]
 struct Tick(u64);
 
+impl Tick {
+    fn next(self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
 #[derive(Error, Debug)]
-enum Error {
+pub enum Error {
     #[error("no read response")]
     EmptyReadResponse,
 }
@@ -147,18 +169,18 @@ struct WriteResponse {
     last_round_entered: Round,
 }
 
-trait ReadClient<V> {
+pub trait ReadClient<V> {
     type Error: Into<Error>;
     type Stream: Stream<Item = Result<ReadResponse<V>, Self::Error>>;
     fn broadcast_read(&self, round: Round) -> Self::Stream;
 }
 
-trait WriteClient<V> {
+pub trait WriteClient<V> {
     type Error: Into<Error>;
     type Stream: Stream<Item = Result<WriteResponse, Self::Error>>;
     fn broadcast_write(&self, value: Value<V>) -> Self::Stream;
 }
 
-trait Quorum {
+pub trait Quorum {
     fn majority(&self) -> usize;
 }
